@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolex Lady-Datejust 28 - Photorealistic 3D Experience</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000 100%);
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #333;
+            border-top: 3px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #controls {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            max-width: 320px;
+            transition: transform 0.3s ease;
+        }
+        
+        #controls:hover {
+            transform: translateX(5px);
+            border-color: rgba(212, 175, 55, 0.6);
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: #d4af37;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            border: none;
+            border-radius: 25px;
+            color: #000;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #e6c245 0%, #d4af37 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .slider-container {
+            margin-top: 15px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d4af37;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        #info-panel {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        #info-panel.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .specs {
+            font-size: 12px;
+            line-height: 1.8;
+            color: #ccc;
+        }
+        
+        .specs strong {
+            color: #d4af37;
+        }
+        
+        #quality-indicator {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .quality-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4af37;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <p style="margin-top: 20px; color: #d4af37;">Loading Masterpiece...</p>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div id="controls">
+        <h1>ROLEX</h1>
+        <div class="subtitle">Lady-Datejust 28</div>
+        
+        <div class="control-section">
+            <div class="control-label">View Presets</div>
+            <div class="button-group">
+                <button onclick="viewPreset('dial')">Dial</button>
+                <button onclick="viewPreset('case')">Case</button>
+                <button onclick="viewPreset('crown')">Crown</button>
+                <button onclick="viewPreset('bracelet')">Bracelet</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Lighting</div>
+            <div class="button-group">
+                <button onclick="setLighting('studio')">Studio</button>
+                <button onclick="setLighting('jewelry')">Jewelry</button>
+                <button onclick="setLighting('natural')">Natural</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Animation</div>
+            <div class="button-group">
+                <button onclick="toggleRotation()">Auto Rotate</button>
+                <button onclick="animateTime()">Time Lapse</button>
+                <button onclick="explodeView()">Explode View</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Environment Intensity</div>
+            <div class="slider-container">
+                <input type="range" id="envIntensity" min="0" max="200" value="100" oninput="updateEnvironment(this.value)">
+            </div>
+        </div>
+    </div>
+    
+    <div id="quality-indicator">
+        <div class="quality-dot"></div>
+        <span style="font-size: 12px; color: #d4af37;">Ultra HD Rendering</span>
+    </div>
+    
+    <div id="info-panel">
+        <h3 style="color: #d4af37; margin-bottom: 10px;">Specifications</h3>
+        <div class="specs">
+            <strong>Case:</strong> 28mm Oystersteel<br>
+            <strong>Bezel:</strong> Fluted, 18k white gold<br>
+            <strong>Dial:</strong> Pink with sunray finish<br>
+            <strong>Movement:</strong> Perpetual, Cal. 2236<br>
+            <strong>Bracelet:</strong> Jubilee, five-piece links<br>
+            <strong>Water Resistance:</strong> 100m/330ft
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="rolex-masterpiece.js"></script>
+</body>
+</html>
