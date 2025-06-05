@@ -20,6 +20,17 @@
             background: rgba(0,0,0,0.8);
             padding: 10px;
             border-radius: 5px;
+            font-family: 'Georgia', serif;
+        }
+        #info h2 {
+            margin: 0 0 10px 0;
+            color: #F5E6D3;
+            font-size: 20px;
+        }
+        #info p {
+            margin: 0;
+            font-size: 12px;
+            color: #ccc;
         }
         canvas {
             display: block;
@@ -28,28 +39,30 @@
 </head>
 <body>
     <div id="info">
-        <h2>Rolex Lady-Datejust 28</h2>
-        <p>Click and drag to rotate</p>
+        <h2>ROLEX</h2>
+        <p>Lady-Datejust 28</p>
+        <p style="margin-top: 5px;">Click and drag to rotate</p>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script>
-        // Basic Three.js setup
+        // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a0a);
         
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 6;
-        camera.position.y = 0.5;
+        camera.position.set(4, 2, 5);
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
         document.body.appendChild(renderer.domElement);
         
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // Enhanced lighting setup
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         scene.add(ambientLight);
         
         const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -57,13 +70,15 @@
         keyLight.castShadow = true;
         keyLight.shadow.mapSize.width = 2048;
         keyLight.shadow.mapSize.height = 2048;
+        keyLight.shadow.camera.near = 0.1;
+        keyLight.shadow.camera.far = 20;
         scene.add(keyLight);
         
-        const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        const fillLight = new THREE.DirectionalLight(0xfff5e6, 0.4);
         fillLight.position.set(-5, 3, -5);
         scene.add(fillLight);
         
-        const rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
         rimLight.position.set(0, 10, -10);
         scene.add(rimLight);
         
@@ -71,146 +86,307 @@
         const watchGroup = new THREE.Group();
         scene.add(watchGroup);
         
-        // Materials
+        // Premium materials
         const steelMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xE8E8E8,
-            metalness: 0.95,
-            roughness: 0.05,
+            color: 0xF0F0F0,
+            metalness: 0.96,
+            roughness: 0.04,
             clearcoat: 1.0,
             clearcoatRoughness: 0.01
         });
         
         const goldMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xF5E6D3,  // Softer white gold color
-            metalness: 0.9,
-            roughness: 0.1,
+            color: 0xF5E6D3,
+            metalness: 0.92,
+            roughness: 0.08,
             clearcoat: 1.0,
             clearcoatRoughness: 0.0
         });
         
         const pinkDialMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xFFB6C1,  // Light pink
-            metalness: 0.1,
-            roughness: 0.4,
-            clearcoat: 0.8,
-            clearcoatRoughness: 0.1
+            color: 0xFFB6C1,
+            metalness: 0.15,
+            roughness: 0.35,
+            clearcoat: 0.9,
+            clearcoatRoughness: 0.05
         });
         
-        // Create watch case
-        const caseGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.5, 64);
+        // Watch case with proper proportions (28mm = 1.4 units)
+        const caseGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.45, 64);
         const watchCase = new THREE.Mesh(caseGeometry, steelMaterial);
         watchCase.castShadow = true;
         watchCase.receiveShadow = true;
         watchGroup.add(watchCase);
         
-        // Create bezel
-        const bezelGeometry = new THREE.TorusGeometry(1.35, 0.1, 8, 64);
-        const bezel = new THREE.Mesh(bezelGeometry, goldMaterial);
-        bezel.position.y = 0.25;
-        bezel.castShadow = true;
-        watchGroup.add(bezel);
+        // Fluted bezel
+        const bezelGroup = new THREE.Group();
+        bezelGroup.position.y = 0.225;
         
-        // Create dial
-        const dialGeometry = new THREE.CircleGeometry(1.3, 64);
+        // Base bezel ring
+        const bezelRingGeometry = new THREE.TorusGeometry(1.35, 0.08, 6, 64);
+        const bezelRing = new THREE.Mesh(bezelRingGeometry, goldMaterial);
+        bezelGroup.add(bezelRing);
+        
+        // Fluted pattern - 40 facets
+        for (let i = 0; i < 40; i++) {
+            const angle = (i / 40) * Math.PI * 2;
+            const facetGeometry = new THREE.BoxGeometry(0.08, 0.1, 0.02);
+            const facet = new THREE.Mesh(facetGeometry, goldMaterial);
+            facet.position.x = Math.cos(angle) * 1.32;
+            facet.position.z = Math.sin(angle) * 1.32;
+            facet.rotation.y = -angle;
+            facet.castShadow = true;
+            bezelGroup.add(facet);
+        }
+        watchGroup.add(bezelGroup);
+        
+        // Dial with sunray effect
+        const dialGeometry = new THREE.CircleGeometry(1.25, 128);
         const dial = new THREE.Mesh(dialGeometry, pinkDialMaterial);
-        dial.position.y = 0.26;
+        dial.position.y = 0.23;
         watchGroup.add(dial);
         
-        // Create crown
-        const crownGeometry = new THREE.CylinderGeometry(0.15, 0.18, 0.4, 16);
-        const crown = new THREE.Mesh(crownGeometry, goldMaterial);
-        crown.position.set(1.5, 0, 0);
+        // Sunray pattern overlay
+        for (let i = 0; i < 360; i += 2) {
+            const rayAngle = (i / 180) * Math.PI;
+            const rayGeometry = new THREE.PlaneGeometry(0.01, 1.25);
+            const rayMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFFB6C1,
+                transparent: true,
+                opacity: 0.1
+            });
+            const ray = new THREE.Mesh(rayGeometry, rayMaterial);
+            ray.position.y = 0.231;
+            ray.rotation.z = rayAngle;
+            watchGroup.add(ray);
+        }
+        
+        // Crown with detail
+        const crownGroup = new THREE.Group();
+        crownGroup.position.set(1.5, 0, 0);
+        
+        const crownBody = new THREE.CylinderGeometry(0.15, 0.18, 0.35, 16);
+        const crown = new THREE.Mesh(crownBody, goldMaterial);
         crown.rotation.z = Math.PI / 2;
-        watchGroup.add(crown);
+        crown.castShadow = true;
+        crownGroup.add(crown);
+        
+        // Crown ridges
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const ridgeGeometry = new THREE.BoxGeometry(0.02, 0.3, 0.04);
+            const ridge = new THREE.Mesh(ridgeGeometry, goldMaterial);
+            ridge.position.x = Math.cos(angle) * 0.16;
+            ridge.position.z = Math.sin(angle) * 0.16;
+            ridge.rotation.y = angle;
+            crownGroup.add(ridge);
+        }
+        watchGroup.add(crownGroup);
         
         // Date window at 3 o'clock
-        const dateWindowGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.02);
-        const dateWindow = new THREE.Mesh(dateWindowGeometry, new THREE.MeshPhysicalMaterial({
-            color: 0xFFFFFF,
-            metalness: 0,
-            roughness: 0.1
-        }));
-        dateWindow.position.set(0.9, 0.27, 0);
-        watchGroup.add(dateWindow);
+        const dateWindowGroup = new THREE.Group();
+        dateWindowGroup.position.set(0.85, 0.24, 0);
+        
+        const dateWindowFrame = new THREE.BoxGeometry(0.22, 0.16, 0.02);
+        const dateFrame = new THREE.Mesh(dateWindowFrame, goldMaterial);
+        dateWindowGroup.add(dateFrame);
+        
+        const dateWindowBg = new THREE.BoxGeometry(0.2, 0.14, 0.01);
+        const dateBg = new THREE.Mesh(dateWindowBg, new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
+        dateBg.position.z = 0.005;
+        dateWindowGroup.add(dateBg);
         
         // Cyclops lens
-        const cyclopsGeometry = new THREE.SphereGeometry(0.12, 16, 8, 0, Math.PI);
-        const cyclops = new THREE.Mesh(cyclopsGeometry, new THREE.MeshPhysicalMaterial({
+        const cyclopsGeometry = new THREE.SphereGeometry(0.13, 16, 8, 0, Math.PI);
+        const cyclopsMaterial = new THREE.MeshPhysicalMaterial({
             color: 0xFFFFFF,
             metalness: 0,
             roughness: 0,
-            transmission: 0.9,
-            thickness: 0.5,
-            ior: 1.5
-        }));
-        cyclops.position.set(0.9, 0.32, 0);
+            transmission: 0.95,
+            thickness: 0.3,
+            ior: 1.52
+        });
+        const cyclops = new THREE.Mesh(cyclopsGeometry, cyclopsMaterial);
+        cyclops.position.y = 0.08;
         cyclops.rotation.x = -Math.PI / 2;
-        cyclops.scale.set(1, 1, 0.3);
-        watchGroup.add(cyclops);
+        cyclops.scale.set(1.2, 1.2, 0.4);
+        dateWindowGroup.add(cyclops);
         
-        // Create hour markers
-        for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
-            const markerGeometry = new THREE.BoxGeometry(0.1, 0.15, 0.01);
-            const marker = new THREE.Mesh(markerGeometry, goldMaterial);
-            marker.position.x = Math.cos(angle) * 0.9;
-            marker.position.z = Math.sin(angle) * 0.9;
-            marker.position.y = 0.27;
-            marker.rotation.y = -angle + Math.PI / 2;
-            watchGroup.add(marker);
-        }
+        watchGroup.add(dateWindowGroup);
         
-        // Create hands group
+        // Hour markers with Roman numerals and diamonds
+        const markerGroup = new THREE.Group();
+        markerGroup.position.y = 0.24;
+        
+        // Roman numerals at 12, 6, 9
+        const romanPositions = [
+            { hour: 12, x: 0, z: -0.9 },
+            { hour: 6, x: 0, z: 0.9 },
+            { hour: 9, x: -0.9, z: 0 }
+        ];
+        
+        romanPositions.forEach(pos => {
+            const romanGroup = new THREE.Group();
+            romanGroup.position.set(pos.x, 0, pos.z);
+            
+            // Simplified roman numeral representation
+            if (pos.hour === 12) {
+                // XII
+                for (let i = -0.06; i <= 0.06; i += 0.04) {
+                    const stroke = new THREE.BoxGeometry(0.02, 0.12, 0.01);
+                    const numeral = new THREE.Mesh(stroke, goldMaterial);
+                    numeral.position.x = i;
+                    romanGroup.add(numeral);
+                }
+            } else {
+                // VI or IX
+                const stroke = new THREE.BoxGeometry(0.04, 0.12, 0.01);
+                const numeral = new THREE.Mesh(stroke, goldMaterial);
+                romanGroup.add(numeral);
+            }
+            
+            markerGroup.add(romanGroup);
+        });
+        
+        // Diamond markers for other hours
+        const diamondHours = [1, 2, 4, 5, 7, 8, 10, 11];
+        diamondHours.forEach(hour => {
+            const angle = (hour / 12) * Math.PI * 2 - Math.PI / 2;
+            const diamondGeometry = new THREE.OctahedronGeometry(0.025, 0);
+            const diamond = new THREE.Mesh(diamondGeometry, goldMaterial);
+            diamond.position.x = Math.cos(angle) * 0.9;
+            diamond.position.z = Math.sin(angle) * 0.9;
+            diamond.rotation.x = Math.PI / 4;
+            diamond.rotation.z = Math.PI / 4;
+            markerGroup.add(diamond);
+        });
+        
+        watchGroup.add(markerGroup);
+        
+        // Hands with proper design
         const handsGroup = new THREE.Group();
-        handsGroup.position.y = 0.28;
+        handsGroup.position.y = 0.26;
         
-        // Hour hand
-        const hourHandGeometry = new THREE.BoxGeometry(0.04, 0.5, 0.01);
-        const hourHand = new THREE.Mesh(hourHandGeometry, steelMaterial);
-        hourHand.geometry.translate(0, 0.25, 0);  // Move pivot to bottom
-        hourHand.rotation.z = -Math.PI / 3;
-        handsGroup.add(hourHand);
+        // Hour hand - Mercedes style
+        const hourHandGroup = new THREE.Group();
+        const hourHandMain = new THREE.BoxGeometry(0.05, 0.45, 0.01);
+        const hourHand = new THREE.Mesh(hourHandMain, steelMaterial);
+        hourHand.geometry.translate(0, 0.225, 0);
+        hourHandGroup.add(hourHand);
+        
+        // Mercedes circle
+        const mercedesRing = new THREE.RingGeometry(0.06, 0.08, 32);
+        const mercedes = new THREE.Mesh(mercedesRing, steelMaterial);
+        mercedes.position.y = 0.35;
+        hourHandGroup.add(mercedes);
+        
+        hourHandGroup.rotation.z = -Math.PI / 3;
+        handsGroup.add(hourHandGroup);
         
         // Minute hand
-        const minuteHandGeometry = new THREE.BoxGeometry(0.03, 0.7, 0.01);
+        const minuteHandGeometry = new THREE.BoxGeometry(0.04, 0.65, 0.01);
         const minuteHand = new THREE.Mesh(minuteHandGeometry, steelMaterial);
-        minuteHand.geometry.translate(0, 0.35, 0);  // Move pivot to bottom
+        minuteHand.geometry.translate(0, 0.325, 0);
         minuteHand.rotation.z = -Math.PI / 6;
         handsGroup.add(minuteHand);
         
         // Second hand
-        const secondHandGeometry = new THREE.BoxGeometry(0.01, 0.8, 0.005);
-        const secondHand = new THREE.Mesh(secondHandGeometry, new THREE.MeshPhysicalMaterial({
-            color: 0xE8E8E8,
-            metalness: 0.9,
-            roughness: 0.1
-        }));
-        secondHand.geometry.translate(0, 0.4, 0);
+        const secondHandGeometry = new THREE.BoxGeometry(0.015, 0.75, 0.005);
+        const secondHand = new THREE.Mesh(secondHandGeometry, steelMaterial);
+        secondHand.geometry.translate(0, 0.375, 0);
         handsGroup.add(secondHand);
         
         // Center cap
-        const centerCapGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.03, 32);
+        const centerCapGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.04, 32);
         const centerCap = new THREE.Mesh(centerCapGeometry, steelMaterial);
         centerCap.position.z = 0.02;
         handsGroup.add(centerCap);
         
         watchGroup.add(handsGroup);
         
-        // Simple bracelet
-        for (let i = 1; i <= 8; i++) {
-            const linkGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.28);
-            const linkTop = new THREE.Mesh(linkGeometry, steelMaterial);
-            linkTop.position.y = -0.3 - i * 0.13;
-            watchGroup.add(linkTop);
+        // Jubilee bracelet with 5-link design
+        const braceletGroup = new THREE.Group();
+        
+        // Create authentic Jubilee link pattern
+        function createJubileeLink(yPos) {
+            const linkGroup = new THREE.Group();
+            linkGroup.position.y = yPos;
             
-            const linkBottom = new THREE.Mesh(linkGeometry, steelMaterial);
-            linkBottom.position.y = 0.3 + i * 0.13;
-            watchGroup.add(linkBottom);
+            // Center link - polished
+            const centerLink = new THREE.BoxGeometry(0.4, 0.12, 0.25);
+            const center = new THREE.Mesh(centerLink, steelMaterial);
+            linkGroup.add(center);
+            
+            // Inner links - brushed
+            const brushedSteel = steelMaterial.clone();
+            brushedSteel.roughness = 0.3;
+            
+            [-0.3, 0.3].forEach(x => {
+                const innerLink = new THREE.BoxGeometry(0.2, 0.11, 0.24);
+                const inner = new THREE.Mesh(innerLink, brushedSteel);
+                inner.position.x = x;
+                linkGroup.add(inner);
+            });
+            
+            // Outer links - polished
+            [-0.5, 0.5].forEach(x => {
+                const outerLink = new THREE.BoxGeometry(0.12, 0.10, 0.23);
+                const outer = new THREE.Mesh(outerLink, steelMaterial);
+                outer.position.x = x;
+                linkGroup.add(outer);
+            });
+            
+            return linkGroup;
         }
         
-        // Mouse controls
+        // Top bracelet section
+        for (let i = 1; i <= 8; i++) {
+            const link = createJubileeLink(-0.3 - i * 0.13);
+            link.rotation.x = -i * 0.015; // Slight curve
+            braceletGroup.add(link);
+        }
+        
+        // Bottom bracelet section
+        for (let i = 1; i <= 8; i++) {
+            const link = createJubileeLink(0.3 + i * 0.13);
+            link.rotation.x = i * 0.015; // Slight curve
+            braceletGroup.add(link);
+        }
+        
+        // End links
+        const endLinkTop = new THREE.BoxGeometry(1.0, 0.15, 0.28);
+        const endTop = new THREE.Mesh(endLinkTop, steelMaterial);
+        endTop.position.y = -0.3;
+        braceletGroup.add(endTop);
+        
+        const endLinkBottom = new THREE.BoxGeometry(1.0, 0.15, 0.28);
+        const endBottom = new THREE.Mesh(endLinkBottom, steelMaterial);
+        endBottom.position.y = 0.3;
+        braceletGroup.add(endBottom);
+        
+        watchGroup.add(braceletGroup);
+        
+        // Glass crystal
+        const crystalGeometry = new THREE.CylinderGeometry(1.25, 1.25, 0.08, 64);
+        const crystalMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xFFFFFF,
+            metalness: 0,
+            roughness: 0,
+            transmission: 0.96,
+            thickness: 0.5,
+            ior: 1.77,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.0
+        });
+        const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
+        crystal.position.y = 0.27;
+        watchGroup.add(crystal);
+        
+        // Interactive controls
         let mouseX = 0;
         let mouseY = 0;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
         let isMouseDown = false;
         
         document.addEventListener('mousedown', () => isMouseDown = true);
@@ -219,12 +395,12 @@
             if (isMouseDown) {
                 mouseX = (event.clientX / window.innerWidth) * 2 - 1;
                 mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-                watchGroup.rotation.y = mouseX * 3;
-                watchGroup.rotation.x = mouseY * 0.5;
+                targetRotationY = mouseX * 3;
+                targetRotationX = mouseY * 0.5;
             }
         });
         
-        // Touch controls for mobile
+        // Touch controls
         document.addEventListener('touchstart', (e) => {
             isMouseDown = true;
             e.preventDefault();
@@ -235,19 +411,35 @@
                 const touch = event.touches[0];
                 mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
                 mouseY = -(touch.clientY / window.innerHeight) * 2 + 1;
-                watchGroup.rotation.y = mouseX * 3;
-                watchGroup.rotation.x = mouseY * 0.5;
+                targetRotationY = mouseX * 3;
+                targetRotationX = mouseY * 0.5;
             }
         });
+        
+        // Animation variables
+        let time = 0;
         
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Smooth rotation
+            watchGroup.rotation.y += (targetRotationY - watchGroup.rotation.y) * 0.1;
+            watchGroup.rotation.x += (targetRotationX - watchGroup.rotation.x) * 0.1;
             
             // Auto rotate when not interacting
             if (!isMouseDown) {
-                watchGroup.rotation.y += 0.005;
+                watchGroup.rotation.y += 0.003;
             }
+            
+            // Animate second hand
+            if (handsGroup.children[2]) {
+                handsGroup.children[2].rotation.z = -time * 2;
+            }
+            
+            // Subtle floating animation
+            watchGroup.position.y = Math.sin(time * 0.5) * 0.02;
             
             renderer.render(scene, camera);
         }
@@ -259,7 +451,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // Start animation
+        // Start
         animate();
     </script>
 </body>
