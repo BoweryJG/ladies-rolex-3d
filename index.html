@@ -69,8 +69,7 @@
         const watchGroup = new THREE.Group();
         scene.add(watchGroup);
         
-        // Initial rotation for proper viewing angle
-        watchGroup.rotation.y = -Math.PI / 2; // Rotate watch 90 degrees so crown is on right
+        // No initial rotation - watch faces directly forward
         
         // Materials
         const steelMaterial = new THREE.MeshPhysicalMaterial({
