@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolex Lady-Datejust 28 - Photorealistic 3D Experience</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000 100%);
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #333;
+            border-top: 3px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #controls {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            max-width: 320px;
+            transition: transform 0.3s ease;
+        }
+        
+        #controls:hover {
+            transform: translateX(5px);
+            border-color: rgba(212, 175, 55, 0.6);
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: #d4af37;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            border: none;
+            border-radius: 25px;
+            color: #000;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #e6c245 0%, #d4af37 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .slider-container {
+            margin-top: 15px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d4af37;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        #info-panel {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            max-width: 300px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        #info-panel.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .specs {
+            font-size: 12px;
+            line-height: 1.8;
+            color: #ccc;
+        }
+        
+        .specs strong {
+            color: #d4af37;
+        }
+        
+        #quality-indicator {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .quality-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4af37;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <p style="margin-top: 20px; color: #d4af37;">Loading Masterpiece...</p>
+    </div>
+    
+    <div id="canvas-container"></div>
+    
+    <div id="controls">
+        <h1>ROLEX</h1>
+        <div class="subtitle">Lady-Datejust 28</div>
+        
+        <div class="control-section">
+            <div class="control-label">View Presets</div>
+            <div class="button-group">
+                <button onclick="viewPreset('dial')">Dial</button>
+                <button onclick="viewPreset('case')">Case</button>
+                <button onclick="viewPreset('crown')">Crown</button>
+                <button onclick="viewPreset('bracelet')">Bracelet</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Lighting</div>
+            <div class="button-group">
+                <button onclick="setLighting('studio')">Studio</button>
+                <button onclick="setLighting('jewelry')">Jewelry</button>
+                <button onclick="setLighting('natural')">Natural</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Animation</div>
+            <div class="button-group">
+                <button onclick="toggleRotation()">Auto Rotate</button>
+                <button onclick="animateTime()">Time Lapse</button>
+                <button onclick="explodeView()">Explode View</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-label">Environment Intensity</div>
+            <div class="slider-container">
+                <input type="range" id="envIntensity" min="0" max="200" value="100" oninput="updateEnvironment(this.value)">
+            </div>
+        </div>
+    </div>
+    
+    <div id="quality-indicator">
+        <div class="quality-dot"></div>
+        <span style="font-size: 12px; color: #d4af37;">Ultra HD Rendering</span>
+    </div>
+    
+    <div id="info-panel">
+        <h3 style="color: #d4af37; margin-bottom: 10px;">Specifications</h3>
+        <div class="specs">
+            <strong>Case:</strong> 28mm Oystersteel<br>
+            <strong>Bezel:</strong> Fluted, 18k white gold<br>
+            <strong>Dial:</strong> Pink with sunray finish<br>
+            <strong>Movement:</strong> Perpetual, Cal. 2236<br>
+            <strong>Bracelet:</strong> Jubilee, five-piece links<br>
+            <strong>Water Resistance:</strong> 100m/330ft
+        </div>
+    </div>
+    
+    <!-- Using Three.js module approach for better compatibility -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        
+        // Make functions available globally
+        window.viewPreset = viewPreset;
+        window.setLighting = setLighting;
+        window.toggleRotation = toggleRotation;
+        window.animateTime = animateTime;
+        window.explodeView = explodeView;
+        window.updateEnvironment = updateEnvironment;
+        
+        let scene, camera, renderer, composer;
+        let watchGroup, controls;
+        let dialGroup, handsGroup, caseGroup, braceletGroup;
+        let isRotating = false;
+        let timeAnimation = false;
+        let exploded = false;
+        
+        // Materials library
+        const materials = {
+            steelPolished: null,
+            steelBrushed: null,
+            steelSatin: null,
+            pinkSunrayDial: null,
+            whiteGold: null,
+            sapphireCrystal: null,
+            cyclopsLens: null,
+            blackPrint: null,
+            luminova: null,
+            dateDisc: null
+        };
+        
+        // Initialize scene
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000000, 10, 50);
+            
+            camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 0, 8);
+            
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Post-processing
+            composer = new EffectComposer(renderer);
+            const renderPass = new RenderPass(scene, camera);
+            composer.addPass(renderPass);
+            
+            const bloomPass = new UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                0.3, 0.4, 0.85
+            );
+            composer.addPass(bloomPass);
+            
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 3;
+            controls.maxDistance = 15;
+            controls.enablePan = false;
+            controls.rotateSpeed = 0.5;
+            
+            // Create materials and watch
+            createMaterials();
+            watchGroup = new THREE.Group();
+            scene.add(watchGroup);
+            
+            createWatch();
+            setupLighting();
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('info-panel').classList.add('show');
+                }, 800);
+            }, 2000);
+        }
+        
+        // Create materials
+        function createMaterials() {
+            materials.steelPolished = new THREE.MeshPhysicalMaterial({
+                color: 0xE5E5E5,
+                metalness: 0.95,
+                roughness: 0.05,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.01,
+                reflectivity: 1.0,
+                envMapIntensity: 1.5
+            });
+            
+            materials.steelBrushed = new THREE.MeshPhysicalMaterial({
+                color: 0xD0D0D0,
+                metalness: 0.9,
+                roughness: 0.3,
+                clearcoat: 0.5,
+                clearcoatRoughness: 0.2,
+                envMapIntensity: 1.0
+            });
+            
+            materials.pinkSunrayDial = new THREE.MeshPhysicalMaterial({
+                color: 0xF5C3C8,
+                metalness: 0.2,
+                roughness: 0.3,
+                clearcoat: 0.9,
+                clearcoatRoughness: 0.05,
+                sheen: 0.5,
+                sheenColor: 0xFFB6C1,
+                envMapIntensity: 0.5
+            });
+            
+            materials.whiteGold = new THREE.MeshPhysicalMaterial({
+                color: 0xF5F5F0,
+                metalness: 0.98,
+                roughness: 0.02,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.0,
+                reflectivity: 1.0,
+                envMapIntensity: 2.0
+            });
+            
+            materials.sapphireCrystal = new THREE.MeshPhysicalMaterial({
+                color: 0xFFFFFF,
+                metalness: 0.0,
+                roughness: 0.0,
+                transmission: 0.95,
+                thickness: 0.5,
+                ior: 1.77,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.0
+            });
+            
+            materials.blackPrint = new THREE.MeshBasicMaterial({
+                color: 0x000000
+            });
+            
+            materials.luminova = new THREE.MeshBasicMaterial({
+                color: 0xC5E8B7,
+                emissive: 0xC5E8B7,
+                emissiveIntensity: 0.2
+            });
+        }
+        
+        // Create watch (simplified version)
+        function createWatch() {
+            caseGroup = createCase();
+            dialGroup = createDial();
+            handsGroup = createHands();
+            braceletGroup = createBracelet();
+            
+            watchGroup.add(caseGroup);
+            watchGroup.add(dialGroup);
+            watchGroup.add(handsGroup);
+            watchGroup.add(braceletGroup);
+            
+            watchGroup.rotation.x = -0.1;
+        }
+        
+        // Create case
+        function createCase() {
+            const group = new THREE.Group();
+            
+            // Main case
+            const caseGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.5, 64);
+            const caseMesh = new THREE.Mesh(caseGeometry, materials.steelPolished);
+            caseMesh.castShadow = true;
+            group.add(caseMesh);
+            
+            // Simplified bezel
+            const bezelGeometry = new THREE.TorusGeometry(1.35, 0.1, 8, 64);
+            const bezel = new THREE.Mesh(bezelGeometry, materials.whiteGold);
+            bezel.position.y = 0.25;
+            group.add(bezel);
+            
+            // Crown
+            const crownGeometry = new THREE.CylinderGeometry(0.15, 0.18, 0.4, 16);
+            const crown = new THREE.Mesh(crownGeometry, materials.steelPolished);
+            crown.position.set(1.5, 0, 0);
+            crown.rotation.z = Math.PI / 2;
+            group.add(crown);
+            
+            return group;
+        }
+        
+        // Create dial
+        function createDial() {
+            const group = new THREE.Group();
+            
+            // Dial face
+            const dialGeometry = new THREE.CircleGeometry(1.3, 128);
+            const dial = new THREE.Mesh(dialGeometry, materials.pinkSunrayDial);
+            dial.position.y = 0.26;
+            group.add(dial);
+            
+            // Hour markers
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+                const markerGeometry = new THREE.BoxGeometry(0.1, 0.15, 0.01);
+                const marker = new THREE.Mesh(markerGeometry, materials.steelPolished);
+                marker.position.x = Math.cos(angle) * 0.9;
+                marker.position.z = Math.sin(angle) * 0.9;
+                marker.position.y = 0.27;
+                marker.rotation.y = -angle + Math.PI / 2;
+                group.add(marker);
+            }
+            
+            return group;
+        }
+        
+        // Create hands
+        function createHands() {
+            const group = new THREE.Group();
+            group.position.y = 0.28;
+            
+            // Hour hand
+            const hourHand = new THREE.Group();
+            const hourGeometry = new THREE.BoxGeometry(0.04, 0.5, 0.01);
+            const hour = new THREE.Mesh(hourGeometry, materials.steelPolished);
+            hour.position.y = 0.25;
+            hourHand.add(hour);
+            hourHand.rotation.z = -Math.PI / 3;
+            group.add(hourHand);
+            
+            // Minute hand
+            const minuteHand = new THREE.Group();
+            const minuteGeometry = new THREE.BoxGeometry(0.03, 0.7, 0.01);
+            const minute = new THREE.Mesh(minuteGeometry, materials.steelPolished);
+            minute.position.y = 0.35;
+            minuteHand.add(minute);
+            minuteHand.rotation.z = -Math.PI / 6;
+            group.add(minuteHand);
+            
+            // Second hand
+            const secondHand = new THREE.Group();
+            const secondGeometry = new THREE.BoxGeometry(0.01, 0.9, 0.005);
+            const second = new THREE.Mesh(secondGeometry, materials.steelPolished);
+            second.position.y = 0.35;
+            secondHand.add(second);
+            group.add(secondHand);
+            
+            // Store references
+            handsGroup.hourHand = hourHand;
+            handsGroup.minuteHand = minuteHand;
+            handsGroup.secondHand = secondHand;
+            
+            return group;
+        }
+        
+        // Create bracelet
+        function createBracelet() {
+            const group = new THREE.Group();
+            
+            // Simplified bracelet links
+            for (let i = 1; i <= 10; i++) {
+                const linkGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.28);
+                const link = new THREE.Mesh(linkGeometry, materials.steelPolished);
+                link.position.y = -0.3 - i * 0.13;
+                link.rotation.x = -i * 0.02;
+                group.add(link);
+            }
+            
+            for (let i = 1; i <= 10; i++) {
+                const linkGeometry = new THREE.BoxGeometry(1.2, 0.12, 0.28);
+                const link = new THREE.Mesh(linkGeometry, materials.steelPolished);
+                link.position.y = 0.3 + i * 0.13;
+                link.rotation.x = i * 0.02;
+                group.add(link);
+            }
+            
+            return group;
+        }
+        
+        // Setup lighting
+        function setupLighting() {
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            keyLight.position.set(5, 8, 5);
+            keyLight.castShadow = true;
+            scene.add(keyLight);
+            
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            fillLight.position.set(-5, 5, -5);
+            scene.add(fillLight);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            if (isRotating) {
+                watchGroup.rotation.y += 0.005;
+            }
+            
+            if (handsGroup && handsGroup.secondHand) {
+                handsGroup.secondHand.rotation.z -= 0.01;
+            }
+            
+            if (timeAnimation && handsGroup) {
+                const time = Date.now() * 0.001;
+                handsGroup.hourHand.rotation.z = -time * 0.05;
+                handsGroup.minuteHand.rotation.z = -time * 0.6;
+                handsGroup.secondHand.rotation.z = -time * 6;
+            }
+            
+            composer.render();
+        }
+        
+        // Control functions
+        function viewPreset(preset) {
+            const positions = {
+                dial: { pos: [0, 0, 5], target: [0, 0, 0] },
+                case: { pos: [4, 2, 4], target: [0, 0, 0] },
+                crown: { pos: [3, 0, 0], target: [1.5, 0, 0] },
+                bracelet: { pos: [0, -4, 6], target: [0, -1, 0] }
+            };
+            
+            if (positions[preset]) {
+                camera.position.set(...positions[preset].pos);
+                controls.target.set(...positions[preset].target);
+                controls.update();
+            }
+        }
+        
+        function setLighting(type) {
+            const lights = scene.children.filter(child => child.isLight && child.type !== 'AmbientLight');
+            
+            switch(type) {
+                case 'studio':
+                    lights.forEach((light, i) => {
+                        light.intensity = i === 0 ? 1.0 : 0.5;
+                    });
+                    break;
+                case 'jewelry':
+                    lights.forEach((light, i) => {
+                        light.intensity = i < 2 ? 0.7 : 1.0;
+                    });
+                    break;
+                case 'natural':
+                    lights.forEach((light, i) => {
+                        light.intensity = 0.6;
+                    });
+                    break;
+            }
+        }
+        
+        function toggleRotation() {
+            isRotating = !isRotating;
+        }
+        
+        function animateTime() {
+            timeAnimation = !timeAnimation;
+        }
+        
+        function explodeView() {
+            exploded = !exploded;
+            const distance = exploded ? 0.5 : 0;
+            
+            if (caseGroup) caseGroup.position.y = -distance;
+            if (dialGroup) dialGroup.position.y = distance * 0.5;
+            if (handsGroup) handsGroup.position.y = distance + 0.28;
+            if (braceletGroup) braceletGroup.position.y = -distance * 1.5;
+        }
+        
+        function updateEnvironment(value) {
+            const intensity = value / 100;
+            scene.traverse(child => {
+                if (child.isMesh && child.material.envMapIntensity !== undefined) {
+                    child.material.envMapIntensity = intensity;
+                }
+            });
+        }
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Initialize
+        init();
+        animate();
+    </script>
+</body>
+</html>
