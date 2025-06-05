@@ -36,22 +36,36 @@
     <script>
         // Basic Three.js setup
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111111);
+        scene.background = new THREE.Color(0x0a0a0a);
         
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 6;
+        camera.position.y = 0.5;
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
         
         // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
         
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(directionalLight);
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        keyLight.position.set(5, 8, 5);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        scene.add(keyLight);
+        
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        fillLight.position.set(-5, 3, -5);
+        scene.add(fillLight);
+        
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        rimLight.position.set(0, 10, -10);
+        scene.add(rimLight);
         
         // Create watch group
         const watchGroup = new THREE.Group();
@@ -59,38 +73,41 @@
         
         // Materials
         const steelMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xE5E5E5,
-            metalness: 0.9,
-            roughness: 0.1,
+            color: 0xE8E8E8,
+            metalness: 0.95,
+            roughness: 0.05,
             clearcoat: 1.0,
             clearcoatRoughness: 0.01
         });
         
         const goldMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xFFD700,
-            metalness: 0.95,
-            roughness: 0.05,
+            color: 0xF5E6D3,  // Softer white gold color
+            metalness: 0.9,
+            roughness: 0.1,
             clearcoat: 1.0,
             clearcoatRoughness: 0.0
         });
         
         const pinkDialMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0xF5C3C8,
-            metalness: 0.2,
-            roughness: 0.3,
-            clearcoat: 0.9,
-            clearcoatRoughness: 0.05
+            color: 0xFFB6C1,  // Light pink
+            metalness: 0.1,
+            roughness: 0.4,
+            clearcoat: 0.8,
+            clearcoatRoughness: 0.1
         });
         
         // Create watch case
         const caseGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.5, 64);
         const watchCase = new THREE.Mesh(caseGeometry, steelMaterial);
+        watchCase.castShadow = true;
+        watchCase.receiveShadow = true;
         watchGroup.add(watchCase);
         
         // Create bezel
         const bezelGeometry = new THREE.TorusGeometry(1.35, 0.1, 8, 64);
         const bezel = new THREE.Mesh(bezelGeometry, goldMaterial);
         bezel.position.y = 0.25;
+        bezel.castShadow = true;
         watchGroup.add(bezel);
         
         // Create dial
@@ -106,6 +123,31 @@
         crown.rotation.z = Math.PI / 2;
         watchGroup.add(crown);
         
+        // Date window at 3 o'clock
+        const dateWindowGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.02);
+        const dateWindow = new THREE.Mesh(dateWindowGeometry, new THREE.MeshPhysicalMaterial({
+            color: 0xFFFFFF,
+            metalness: 0,
+            roughness: 0.1
+        }));
+        dateWindow.position.set(0.9, 0.27, 0);
+        watchGroup.add(dateWindow);
+        
+        // Cyclops lens
+        const cyclopsGeometry = new THREE.SphereGeometry(0.12, 16, 8, 0, Math.PI);
+        const cyclops = new THREE.Mesh(cyclopsGeometry, new THREE.MeshPhysicalMaterial({
+            color: 0xFFFFFF,
+            metalness: 0,
+            roughness: 0,
+            transmission: 0.9,
+            thickness: 0.5,
+            ior: 1.5
+        }));
+        cyclops.position.set(0.9, 0.32, 0);
+        cyclops.rotation.x = -Math.PI / 2;
+        cyclops.scale.set(1, 1, 0.3);
+        watchGroup.add(cyclops);
+        
         // Create hour markers
         for (let i = 0; i < 12; i++) {
             const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
@@ -118,20 +160,41 @@
             watchGroup.add(marker);
         }
         
-        // Create hands
+        // Create hands group
+        const handsGroup = new THREE.Group();
+        handsGroup.position.y = 0.28;
+        
+        // Hour hand
         const hourHandGeometry = new THREE.BoxGeometry(0.04, 0.5, 0.01);
         const hourHand = new THREE.Mesh(hourHandGeometry, steelMaterial);
-        hourHand.position.y = 0.28;
-        hourHand.position.z = 0.25;
+        hourHand.geometry.translate(0, 0.25, 0);  // Move pivot to bottom
         hourHand.rotation.z = -Math.PI / 3;
-        watchGroup.add(hourHand);
+        handsGroup.add(hourHand);
         
+        // Minute hand
         const minuteHandGeometry = new THREE.BoxGeometry(0.03, 0.7, 0.01);
         const minuteHand = new THREE.Mesh(minuteHandGeometry, steelMaterial);
-        minuteHand.position.y = 0.28;
-        minuteHand.position.z = 0.35;
+        minuteHand.geometry.translate(0, 0.35, 0);  // Move pivot to bottom
         minuteHand.rotation.z = -Math.PI / 6;
-        watchGroup.add(minuteHand);
+        handsGroup.add(minuteHand);
+        
+        // Second hand
+        const secondHandGeometry = new THREE.BoxGeometry(0.01, 0.8, 0.005);
+        const secondHand = new THREE.Mesh(secondHandGeometry, new THREE.MeshPhysicalMaterial({
+            color: 0xE8E8E8,
+            metalness: 0.9,
+            roughness: 0.1
+        }));
+        secondHand.geometry.translate(0, 0.4, 0);
+        handsGroup.add(secondHand);
+        
+        // Center cap
+        const centerCapGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.03, 32);
+        const centerCap = new THREE.Mesh(centerCapGeometry, steelMaterial);
+        centerCap.position.z = 0.02;
+        handsGroup.add(centerCap);
+        
+        watchGroup.add(handsGroup);
         
         // Simple bracelet
         for (let i = 1; i <= 8; i++) {
