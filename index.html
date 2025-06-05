@@ -69,6 +69,9 @@
         const watchGroup = new THREE.Group();
         scene.add(watchGroup);
         
+        // Initial rotation for proper viewing angle
+        watchGroup.rotation.y = -Math.PI / 2; // Rotate watch 90 degrees so crown is on right
+        
         // Materials
         const steelMaterial = new THREE.MeshPhysicalMaterial({
             color: 0xE8E8E8,
@@ -107,13 +110,6 @@
         const dial = new THREE.Mesh(dialGeometry, pinkDialMaterial);
         dial.position.y = 0.26;
         watchGroup.add(dial);
-        
-        // Crown
-        const crownGeometry = new THREE.CylinderGeometry(0.15, 0.18, 0.4, 16);
-        const crown = new THREE.Mesh(crownGeometry, goldMaterial);
-        crown.position.set(1.5, 0, 0);
-        crown.rotation.z = Math.PI / 2;
-        watchGroup.add(crown);
         
         // Hour markers - correctly positioned (12 at top, 3 at right, etc.)
         for (let i = 0; i < 12; i++) {
@@ -168,6 +164,13 @@
         const centerCap = new THREE.Mesh(centerCapGeometry, steelMaterial);
         centerCap.position.y = 0.29;
         watchGroup.add(centerCap);
+        
+        // Crown (stays with watch case, not rotated)
+        const crownGeometry = new THREE.CylinderGeometry(0.15, 0.18, 0.4, 16);
+        const crown = new THREE.Mesh(crownGeometry, goldMaterial);
+        crown.position.set(1.5, 0, 0);
+        crown.rotation.z = Math.PI / 2;
+        watchGroup.add(crown);
         
         // Simple bracelet
         for (let i = 1; i <= 8; i++) {
