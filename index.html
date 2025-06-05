@@ -43,9 +43,10 @@
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         
-        // Camera
+        // Camera - positioned to view watch face directly
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 0, 6);
+        camera.lookAt(0, 0, 0);
         
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -93,21 +94,22 @@
             clearcoat: 0.8
         });
         
-        // Watch case
+        // Watch case - rotated to face forward
         const caseGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.5, 64);
         const watchCase = new THREE.Mesh(caseGeometry, steelMaterial);
+        watchCase.rotation.x = Math.PI / 2; // Rotate to face camera
         watchGroup.add(watchCase);
         
         // Bezel
         const bezelGeometry = new THREE.TorusGeometry(1.35, 0.1, 8, 64);
         const bezel = new THREE.Mesh(bezelGeometry, goldMaterial);
-        bezel.position.y = 0.25;
+        bezel.position.z = -0.25;
         watchGroup.add(bezel);
         
         // Dial
         const dialGeometry = new THREE.CircleGeometry(1.3, 64);
         const dial = new THREE.Mesh(dialGeometry, pinkDialMaterial);
-        dial.position.y = 0.26;
+        dial.position.z = -0.26;
         watchGroup.add(dial);
         
         // Hour markers - correctly positioned (12 at top, 3 at right, etc.)
@@ -121,12 +123,11 @@
             
             // Position markers in a circle
             marker.position.x = Math.cos(angle) * 0.9;
-            marker.position.z = Math.sin(angle) * 0.9;
-            marker.position.y = 0.27;
+            marker.position.y = Math.sin(angle) * 0.9;
+            marker.position.z = -0.27;
             
             // Rotate marker to point toward center
-            marker.lookAt(0, 0.27, 0);
-            marker.rotateX(Math.PI / 2);
+            marker.lookAt(0, 0, -0.27);
             
             watchGroup.add(marker);
         }
@@ -134,41 +135,42 @@
         // Date window at 3 o'clock
         const dateWindowGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.02);
         const dateWindow = new THREE.Mesh(dateWindowGeometry, new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
-        dateWindow.position.set(0.9, 0.27, 0);
+        dateWindow.position.set(0.9, 0, -0.27);
         watchGroup.add(dateWindow);
         
         // Hands - showing 10:10
         const hourHandGeometry = new THREE.BoxGeometry(0.04, 0.5, 0.01);
         const hourHand = new THREE.Mesh(hourHandGeometry, steelMaterial);
         hourHand.geometry.translate(0, 0.25, 0);
-        hourHand.position.y = 0.28;
+        hourHand.position.z = -0.28;
         hourHand.rotation.z = -60 * (Math.PI / 180);  // 10 o'clock (60 degrees from 12)
         watchGroup.add(hourHand);
         
         const minuteHandGeometry = new THREE.BoxGeometry(0.03, 0.7, 0.01);
         const minuteHand = new THREE.Mesh(minuteHandGeometry, steelMaterial);
         minuteHand.geometry.translate(0, 0.35, 0);
-        minuteHand.position.y = 0.28;
+        minuteHand.position.z = -0.28;
         minuteHand.rotation.z = 60 * (Math.PI / 180);  // 10 minutes (60 degrees from 12)
         watchGroup.add(minuteHand);
         
         const secondHandGeometry = new THREE.BoxGeometry(0.01, 0.8, 0.005);
         const secondHand = new THREE.Mesh(secondHandGeometry, steelMaterial);
         secondHand.geometry.translate(0, 0.4, 0);
-        secondHand.position.y = 0.28;
+        secondHand.position.z = -0.28;
         watchGroup.add(secondHand);
         
         // Center cap
         const centerCapGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.03, 32);
         const centerCap = new THREE.Mesh(centerCapGeometry, steelMaterial);
-        centerCap.position.y = 0.29;
+        centerCap.position.z = -0.29;
+        centerCap.rotation.x = Math.PI / 2;
         watchGroup.add(centerCap);
         
-        // Crown (stays with watch case, not rotated)
+        // Crown at 3 o'clock position
         const crownGeometry = new THREE.CylinderGeometry(0.15, 0.18, 0.4, 16);
         const crown = new THREE.Mesh(crownGeometry, goldMaterial);
         crown.position.set(1.5, 0, 0);
-        crown.rotation.z = Math.PI / 2;
+        crown.rotation.y = Math.PI / 2;
         watchGroup.add(crown);
         
         // Simple bracelet
