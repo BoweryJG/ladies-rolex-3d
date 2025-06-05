@@ -115,15 +115,24 @@
         crown.rotation.z = Math.PI / 2;
         watchGroup.add(crown);
         
-        // Hour markers - properly oriented with 12 at top
+        // Hour markers - correctly positioned (12 at top, 3 at right, etc.)
         for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2;
-            const markerGeometry = new THREE.BoxGeometry(0.1, 0.15, 0.01);
+            // Start from 12 o'clock and go clockwise
+            const hour = i === 0 ? 12 : i;
+            const angle = (i * 30 - 90) * (Math.PI / 180); // Convert to radians, starting from top
+            
+            const markerGeometry = new THREE.BoxGeometry(0.08, 0.15, 0.01);
             const marker = new THREE.Mesh(markerGeometry, goldMaterial);
-            marker.position.x = Math.sin(angle) * 0.9;
-            marker.position.z = -Math.cos(angle) * 0.9;
+            
+            // Position markers in a circle
+            marker.position.x = Math.cos(angle) * 0.9;
+            marker.position.z = Math.sin(angle) * 0.9;
             marker.position.y = 0.27;
-            marker.rotation.y = angle;
+            
+            // Rotate marker to point toward center
+            marker.lookAt(0, 0.27, 0);
+            marker.rotateX(Math.PI / 2);
+            
             watchGroup.add(marker);
         }
         
@@ -133,19 +142,19 @@
         dateWindow.position.set(0.9, 0.27, 0);
         watchGroup.add(dateWindow);
         
-        // Hands - properly oriented
+        // Hands - showing 10:10
         const hourHandGeometry = new THREE.BoxGeometry(0.04, 0.5, 0.01);
         const hourHand = new THREE.Mesh(hourHandGeometry, steelMaterial);
         hourHand.geometry.translate(0, 0.25, 0);
         hourHand.position.y = 0.28;
-        hourHand.rotation.z = Math.PI / 6;  // 10 o'clock
+        hourHand.rotation.z = -60 * (Math.PI / 180);  // 10 o'clock (60 degrees from 12)
         watchGroup.add(hourHand);
         
         const minuteHandGeometry = new THREE.BoxGeometry(0.03, 0.7, 0.01);
         const minuteHand = new THREE.Mesh(minuteHandGeometry, steelMaterial);
         minuteHand.geometry.translate(0, 0.35, 0);
         minuteHand.position.y = 0.28;
-        minuteHand.rotation.z = Math.PI / 30;  // 10 past
+        minuteHand.rotation.z = 60 * (Math.PI / 180);  // 10 minutes (60 degrees from 12)
         watchGroup.add(minuteHand);
         
         const secondHandGeometry = new THREE.BoxGeometry(0.01, 0.8, 0.005);
